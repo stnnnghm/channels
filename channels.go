@@ -2,22 +2,27 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 func main() {
 	n := 3
 
-	// We want to run a goroutine to multiply n by 2
-	go multiplyByTwo(n)
+	// This is where we "make" the channel, which can be used
+	// to move the 'int' datatype
+	out := make(chan int)
 
-	// We pause the program so that the 'multiplyByTwo' goroutine
-	// can finish and print the output before the code exits
-	time.Sleep(time.Second)
+	// We still run this func as a goroutine, but this time,
+	// the channel that we made is also provided
+	go multiplyByTwo(n, out)
+
+	// Once any output is received on the channel, print it to the console
+	// and proceed
+	fmt.Println(<-out)
 }
 
-func multiplyByTwo(num int) int {
+// This func now accepts a channel as its second argument...
+func multiplyByTwo(num int, out chan<- int) {
 	result := num * 2
-	fmt.Println(result)
-	return result
+
+	out <- result
 }
