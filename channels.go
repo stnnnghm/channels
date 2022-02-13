@@ -5,24 +5,35 @@ import (
 )
 
 func main() {
-	n := 3
-
-	// This is where we "make" the channel, which can be used
-	// to move the 'int' datatype
 	out := make(chan int)
+	in := make(chan int)
 
-	// We still run this func as a goroutine, but this time,
-	// the channel that we made is also provided
-	go multiplyByTwo(n, out)
+	// Create 3 'multiplyByTwo' goroutines
+	go multiplyByTwo(in, out)
+	go multiplyByTwo(in, out)
+	go multiplyByTwo(in, out)
 
-	// Once any output is received on the channel, print it to the console
-	// and proceed
+	// Send data into goroutines
+	go func() {
+		in <- 1
+		in <- 2
+		in <- 3
+		in <- 4
+	}()
+
+	// Wait for each result to arrive
+	fmt.Println(<-out)
+	fmt.Println(<-out)
+	fmt.Println(<-out)
 	fmt.Println(<-out)
 }
 
 // This func now accepts a channel as its second argument...
-func multiplyByTwo(num int, out chan<- int) {
-	result := num * 2
-
-	out <- result
+func multiplyByTwo(in <-chan int, out chan<- int) {
+	fmt.Println("Initializing goroutine...")
+	for {
+		num := <-in
+		result := num * 2
+		out <- result
+	}
 }
