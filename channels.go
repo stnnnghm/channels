@@ -2,38 +2,36 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func main() {
-	out := make(chan int)
-	in := make(chan int)
+	out1 := make(chan int)
+	out2 := make(chan int)
 
-	// Create 3 'multiplyByTwo' goroutines
-	go multiplyByTwo(in, out)
-	go multiplyByTwo(in, out)
-	go multiplyByTwo(in, out)
+	// Start both fast and slow
+	// goroutines with different channels
+	go fast(2, out1)
+	go slow(3, out2)
 
-	// Send data into goroutines
-	go func() {
-		in <- 1
-		in <- 2
-		in <- 3
-		in <- 4
-	}()
-
-	// Wait for each result to arrive
-	fmt.Println(<-out)
-	fmt.Println(<-out)
-	fmt.Println(<-out)
-	fmt.Println(<-out)
+	// Perform some action depending on which channel
+	// receives information first
+	select {
+	case res := <-out1:
+		fmt.Println("fast finished first, result:", res)
+	case res := <-out2:
+		fmt.Println("slow finished first, result:", res)
+	}
 }
 
-// This func now accepts a channel as its second argument...
-func multiplyByTwo(in <-chan int, out chan<- int) {
-	fmt.Println("Initializing goroutine...")
-	for {
-		num := <-in
-		result := num * 2
-		out <- result
-	}
+func fast(num int, out chan<- int) {
+	result := num * 2
+	time.Sleep(5 * time.Millisecond)
+	out <- result
+}
+
+func slow(num int, out chan<- int) {
+	result := num * 2
+	time.Sleep(15 * time.Millisecond)
+	out <- result
 }
